@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Suara Guru Berdasarkan Kategori</title>
+    <style>
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Rekap Suara Guru Berdasarkan Kategori</h1>
+
+    <!-- Menampilkan suara berdasarkan kategori -->
+    <div id="voteCategories">
+        <!-- Data kategori akan ditampilkan di sini -->
+    </div>
+
+    <script>
+        // Fungsi untuk mendapatkan dan menampilkan data suara berdasarkan kategori
+        function getVotes() {
+            fetch('https://sheetdb.io/api/v1/hnqcs04i9arub')
+                .then(response => response.json())
+                .then(data => {
+                    // Membuat objek untuk mengelompokkan suara berdasarkan kategori dan guru
+                    const kategoriGuru = {};
+
+                    // Looping untuk mengelompokkan suara berdasarkan kategori dan guru
+                    data.forEach(item => {
+                        const kategori = item.kategori;  // Mengambil kategori
+                        const guru = item.guru;  // Mengambil nama guru
+                        const suara = parseInt(item.suara, 10);  // Mengambil suara, pastikan angka
+
+                        // Jika kategori belum ada, buat kategori baru
+                        if (!kategoriGuru[kategori]) {
+                            kategoriGuru[kategori] = {};
+                        }
+
+                        // Jika guru belum ada dalam kategori, buat guru baru dengan suara 0
+                        if (!kategoriGuru[kategori][guru]) {
+                            kategoriGuru[kategori][guru] = 0;
+                        }
+
+                        // Tambahkan suara untuk guru dalam kategori (penjumlahan suara)
+                        kategoriGuru[kategori][guru] += suara;
+                    });
+
+                    // Menampilkan hasil suara berdasarkan kategori
+                    const categoriesDiv = document.getElementById('voteCategories');
+                    for (const kategori in kategoriGuru) {
+                        // Membuat elemen untuk kategori
+                        const categoryElement = document.createElement('div');
+                        categoryElement.innerHTML = `<h2>${kategori}</h2>`;
+                        categoriesDiv.appendChild(categoryElement);
+
+                        // Membuat tabel untuk setiap kategori
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>Guru</th>
+                                    <th>Total Suara</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-${kategori}">
+                                <!-- Data guru akan ditampilkan di sini -->
+                            </tbody>
+                        `;
+                        categoryElement.appendChild(table);
+
+                        // Menampilkan suara untuk tiap guru dalam kategori
+                        const tableBody = document.getElementById(`table-${kategori}`);
+                        for (const guru in kategoriGuru[kategori]) {
+                            const row = document.createElement('tr');
+                            const guruCell = document.createElement('td');
+                            const suaraCell = document.createElement('td');
+
+                            guruCell.textContent = guru;
+                            suaraCell.textContent = kategoriGuru[kategori][guru];
+
+                            row.appendChild(guruCell);
+                            row.appendChild(suaraCell);
+                            tableBody.appendChild(row);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // Memanggil fungsi untuk menampilkan data saat halaman dimuat
+        window.onload = getVotes;
+    </script>
+</body>
+</html>
